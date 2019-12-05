@@ -36,6 +36,7 @@ from engine import Game
 
 import tkinter as tk
 import threading
+from time import time
 from random import randint
 
 class GameGUI(threading.Thread):
@@ -51,6 +52,8 @@ class GameGUI(threading.Thread):
 
     game_running = True
     restart_with_game_engine = None
+    iteration_time = time()
+    fps = 0
 
     def __init__(self, engine):
         threading.Thread.__init__(self)
@@ -79,6 +82,11 @@ class GameGUI(threading.Thread):
         self.engine.iterate_loop(self)
         if self.game_running:
             self.root.after(50, self.game_loop)
+            # calculate fps
+            last_time = self.iteration_time
+            self.iteration_time = time()
+            elapsed = self.iteration_time - last_time
+            self.fps = 1.0 / elapsed
         else:
             # stop thread and dispose of GUI
             print('Goodbye!\n')
@@ -102,8 +110,11 @@ class GameGUI(threading.Thread):
         return self.canvas
 
     def set_info_text(self, text):
-        debug_text = 'num canvas items: {}\n'.format(len(self.canvas.find_all()))
-        self.canvas.itemconfig(self.info, text=debug_text + text)
+        fps_str = 'fps: {:.2f}\n'.format(self.fps)
+        debug_str = 'num canvas items: {}\n'.format(len(self.canvas.find_all()))
+        self.canvas.itemconfig(self.info, text=fps_str + debug_str + text)
+
+###################### TOP LEVEL USER INTERFACE ######################
 
 game = Game()
 gui = GameGUI(game)

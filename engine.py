@@ -177,7 +177,8 @@ class Game(object):
     def display(self, gui):
         for a in self.actors:
             a.update_gui_shape(gui)
-        gui.set_info_text('score: {}\nshow boxes: {}'.format(self.player.score, self.show_bounding_boxes))
+        gui.set_info_text('show boxes: {}\nscore: {}'.format(self.show_bounding_boxes,
+                                                             self.player.score))
 
     def collision_detection(self, a, b):
         """Do collision detection for two Actors."""
