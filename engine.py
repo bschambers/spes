@@ -23,6 +23,29 @@ def rand_canvas_pos(gui):
     return [randint(0, gui.get_width()),
             randint(0, gui.get_height())]
 
+def rotate_vertex(x, y, center_x, center_y, degrees):
+
+    # amount = math.radians(-degrees)
+
+    # GET X & Y LENGTHS
+    x_len = x - (center_x + 0.0)
+    y_len = y - (center_y + 0.0)
+    # GET H LENGTH (hypotenuse)
+    # Pythagoras' theroem ---> a2 + b2 = c2
+    h_len = math.sqrt((x_len * x_len) + (y_len * y_len))
+    # negative y direction compensation!!!!
+    if y_len < 0:
+        h_len = -h_len
+    # GET ANGLE
+    angle = math.acos(x_len / h_len)
+    # INCREMENT ANGLE
+    # angle += math.pi * amount
+    angle += math.radians(-degrees)
+    # SET NEW POSITION
+    x_out = center_x + (h_len * (math.cos(angle)))
+    y_out = center_y + (h_len * (math.sin(angle)))
+    return [x_out, y_out]
+
 ########################### EDGE BEHAVIOUR ###########################
 
 def do_nothing_on_edges(gui, actor):
@@ -226,18 +249,14 @@ class PolygonActor(Actor):
     def _update_shape(self):
         """Build shape from the archetype, position and rotation. Also updates bounding box."""
         pr('PolygonActor.update_shape() --- pos={}'.format(self.position))
-
         # shape
         self.shape = []
         for i in range(0, len(self.shape_archetype), 2):
             x = self.shape_archetype[i]
             y = self.shape_archetype[i + 1]
-            # vertex = rotate_vertex(x, y, 0, 0, self.rotation)
-            # self.shape.append(vertex[0] + self.position[0])
-            # self.shape.append(vertex[1] + self.position[1])
-            self.shape.append(x + self.position[0])
-            self.shape.append(y + self.position[1])
-
+            vertex = rotate_vertex(x, y, 0, 0, self.rotation)
+            self.shape.append(vertex[0] + self.position[0])
+            self.shape.append(vertex[1] + self.position[1])
         # bounding box
         xmin = self.shape[0]
         xmax = xmin
@@ -288,9 +307,11 @@ class PolygonActor(Actor):
         self.angle = angle
         self.velocity = velocity
 
-    def move(self, angle, distance):
+    def move(self, angle, dist):
+        print('move: angle={} dist={}'.format(angle, dist))
+        self.rotate(angle)
         vel = 4
-        steps = distance / vel
+        steps = dist / vel
         self.angle = angle
         self.velocity = vel
         self.schedule(steps, lambda: self.set_velocity(0))
@@ -307,14 +328,16 @@ class Ship(PolygonActor):
         super().__init__(game, [10, -15, 0, 15, -10, -15], color)
 
     def missile(self, angle):
-        print('missile: angle {}'.format(angle))
+        print('missile: angle={}'.format(angle))
+        self.rotate(angle)
         x_origin = self.shape[2]
         y_origin = self.shape[3]
         m = Bullet(self.game, x_origin, y_origin, angle, self)
         self.game.add_actor(m)
 
     def laser(self, angle):
-        print('laser: angle = {}'.format(angle))
+        print('laser: angle={}'.format(angle))
+        self.rotate(angle)
         x_origin = self.shape[2]
         y_origin = self.shape[3]
         beam = LaserBeam(self.game, x_origin, y_origin, angle, self)

@@ -3,7 +3,7 @@
 SPES is a 2D space combat Python programming game which is fun for both novice and
 experienced coders!
 
-You will control your starship by executing python code.
+You will control your starship by executing Python code.
 
 There are two different frontends:
 - command line
