@@ -9,11 +9,9 @@ There are two different frontends:
 - command line
 - built-in editor
 
-* Usage
+* Running the Game
 
-** Running the Game
-
-*** Command Line Frontend
+** Command Line Frontend
 
 Navigate to the game directory:
 
@@ -33,13 +31,46 @@ Start the game GUI running:
 gui.start()
 #+END_SRC
 
-*** Built-in Editor Frontend
+** Built-in Editor Frontend
 
 Just run the file spes_builtin.py:
 
 #+BEGIN_SRC shell
 python spes_builtin.py
 #+END_SRC
+
+* How to Play
+
+Try these commands to begin with:
+
+#+BEGIN_SRC python :classname example
+# move player's ship at 45 degree direction for distance of 200 units
+p.move(45, 200)
+
+# fire missile or laser in 45 degree direction
+p.missile(45)
+p.laser(45)
+
+# p is shorthand for PLAYER - this will display a printed representation of the Python object 'p'
+p
+
+# show help for the object 'p'
+help(p)
+
+# show help for the player's 'move' function
+help(p.move)
+#+END_SRC
+
+NOTE: all commands must be given in valid Python 3 syntax - so brackets are
+required around all function arguments.
+
+* Credits
+
+Game concept and all code by B. S. Chambers.
+
+Email: ben@bschambers.info
+
+Website: https://github.com/bschambers/spes
 
 * License
 
