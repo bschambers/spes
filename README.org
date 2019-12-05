@@ -3,9 +3,43 @@
 SPES is a 2D space combat Python programming game which is fun for both novice and
 experienced coders!
 
+You will control your starship by executing python code.
+
 There are two different frontends:
 - command line
 - built-in editor
+
+* Usage
+
+** Running the Game
+
+*** Command Line Frontend
+
+Navigate to the game directory:
+
+#+BEGIN_SRC shell
+cd path/to/spes_dir
+#+END_SRC
+
+Load the command line frontend and enter the interactive Python interpreter:
+
+#+BEGIN_SRC
+python -i spes_cmd.py
+#+END_SRC
+
+Start the game GUI running:
+
+#+BEGIN_SRC python :classname example
+gui.start()
+#+END_SRC
+
+*** Built-in Editor Frontend
+
+Just run the file spes_builtin.py:
+
+#+BEGIN_SRC shell
+python spes_builtin.py
+#+END_SRC
 
 * License
 
