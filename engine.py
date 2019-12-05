@@ -24,24 +24,18 @@ def rand_canvas_pos(gui):
             randint(0, gui.get_height())]
 
 def rotate_vertex(x, y, center_x, center_y, degrees):
-
-    # amount = math.radians(-degrees)
-
-    # GET X & Y LENGTHS
+    # get horizontal & vertical lengths
     x_len = x - (center_x + 0.0)
     y_len = y - (center_y + 0.0)
-    # GET H LENGTH (hypotenuse)
-    # Pythagoras' theroem ---> a2 + b2 = c2
+    # get hypotenuse length (Pythagoras' theroem --> a^2 + b^2 = c^2)
     h_len = math.sqrt((x_len * x_len) + (y_len * y_len))
-    # negative y direction compensation!!!!
-    if y_len < 0:
-        h_len = -h_len
-    # GET ANGLE
+    # negative y direction compensation
+    if y_len < 0: h_len = -h_len
+    # get current angle
     angle = math.acos(x_len / h_len)
-    # INCREMENT ANGLE
-    # angle += math.pi * amount
+    # increment angle
     angle += math.radians(-degrees)
-    # SET NEW POSITION
+    # calculate new position
     x_out = center_x + (h_len * (math.cos(angle)))
     y_out = center_y + (h_len * (math.sin(angle)))
     return [x_out, y_out]
@@ -130,6 +124,7 @@ class Game(object):
 
     def __init__(self):
         self.player = Ship(self, 'magenta')
+        self.player.quiet_mode = False
         self.player.name = 'player'
         self.player.position = [200, 200]
         self.add_actor(self.player)
@@ -198,13 +193,14 @@ class Game(object):
                     if ba[1] <= bb[3]:
                         if bb[1] <= ba[3]:
                             # kill both actors
-                            a.die()
-                            b.die()
+                            a.collision(hit_by=b)
+                            b.collision(hit_by=a)
 
 class Actor(object):
     """Abstract base class for actors."""
 
     game = None
+    quiet_mode = True
     name = 'unnamed'
     is_live = True
     scheduled_jobs = []
@@ -220,6 +216,10 @@ class Actor(object):
 
     def __init__(self, game):
         self.game = game
+
+    def msg(self, text):
+        if not self.quiet_mode:
+            print(text)
 
     def act(self, gui):
         pr('Actor.act()')
@@ -244,6 +244,14 @@ class Actor(object):
 
     def die(self):
         self.is_live = False
+
+    def collision(self, hit_by=None):
+        self.die()
+        if hit_by:
+            hit_by.incr_score(1)
+
+    def incr_score(self, amt):
+        self.score += amt
 
     def dispose_gui(self, gui):
         if self.gui_shape:
@@ -303,7 +311,7 @@ class PolygonActor(Actor):
 
     def move_by(self, angle, dist):
         pr('PolygonActor.move_by: {} {}'.format(angle, dist))
-        # print("move: ", self)
+        # self.msg("move: ", self)
         x = math.sin(math.radians(angle)) * dist
         y = math.cos(math.radians(angle)) * dist
         self.position[0] += x
@@ -337,7 +345,7 @@ class PolygonActor(Actor):
         self.velocity = velocity
 
     def move(self, angle, dist):
-        print('move: angle={} dist={}'.format(angle, dist))
+        self.msg('move: angle={} dist={}'.format(angle, dist))
         self.rotate(angle)
         vel = 4
         steps = dist / vel
@@ -357,7 +365,7 @@ class Ship(PolygonActor):
         super().__init__(game, [10, -15, 0, 15, -10, -15], color)
 
     def missile(self, angle):
-        print('missile: angle={}'.format(angle))
+        self.msg('missile: angle={}'.format(angle))
         self.rotate(angle)
         x_origin = self.shape[2]
         y_origin = self.shape[3]
@@ -365,7 +373,7 @@ class Ship(PolygonActor):
         self.game.add_actor(m)
 
     def laser(self, angle):
-        print('laser: angle={}'.format(angle))
+        self.msg('laser: angle={}'.format(angle))
         self.rotate(angle)
         x_origin = self.shape[2]
         y_origin = self.shape[3]
@@ -414,3 +422,7 @@ dies when it reaches the edge of the screen."""
         x2 = math.sin(math.radians(angle)) * dist
         y2 = math.cos(math.radians(angle)) * dist
         self.position = [x + x2, y + y2]
+
+    # OVERRIDE
+    def incr_score(self, amt):
+        self.parent.incr_score(amt)
