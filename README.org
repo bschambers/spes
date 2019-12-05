@@ -1,8 +1,14 @@
 * SPES: Starship Programming Edutainment System
 
-SPES is a 2D space combat python programming game which is fun for both novice and
+SPES is a 2D space combat Python programming game which is fun for both novice and
 experienced coders!
 
 There are two different frontends:
 - command line
 - built-in editor
+
+* License
+
+Copyright 2019-present B. S. Chambers.
+
+Distributed under GPL, version 3.
