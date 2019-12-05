@@ -80,12 +80,46 @@ def bounce_on_edges(gui, actor):
         a.angle = 180 + diff
     a.angle = a.angle % 360
 
+############################ JOB OBJECTS #############################
+
+class Job(object):
+
+    # steps = 1
+    job_func = None
+
+    def __init__(self, job_func, steps=0):
+        self.steps = steps + 1
+        self.job_func = job_func
+
+    def is_expired(self):
+        return self.steps < 1
+
+    def run(self):
+        self.steps -= 1
+        if self.steps < 1:
+            self.job_func()
+
+class DroneController(Job):
+
+    ship = None
+
+    def __init__(self, ship):
+        super().__init__(job_func=self.next_action)
+        self.ship = ship
+        self.steps = randint(500, 3000)
+
+    def next_action(self):
+        self.steps = randint(500, 3000)
+        angle = randint(0, 359)
+        dist = randint(100, 1000)
+        self.ship.move(angle, dist)
+
 ############################ GAME ENGINE #############################
 
-class Game():
+class Game(object):
     """The game engine."""
 
-    num_drones = 1
+    num_drones = 2
     actors = []
     actors_to_add = []
     player = None
@@ -124,8 +158,7 @@ class Game():
             drone = Ship(self, 'grey')
             drone.name = 'drone'
             drone.position = rand_canvas_pos(gui)
-            drone.angle = randint(0, 360)
-            drone.velocity = randint(1, 10)
+            drone.schedule(DroneController(drone))
             self.actors.append(drone)
         # each actor perform it's action
         for a in self.actors:
@@ -194,24 +227,20 @@ class Actor(object):
         while self.new_jobs:
             self.scheduled_jobs.append(self.new_jobs.pop())
         # do scheduled jobs
-        for job in self.scheduled_jobs:
-            countdown = job[0]
-            func = job[1]
-            if countdown <= 0:
-                func()
-            job[0] -= 1
-        # garbage collection
         rem = []
         for job in self.scheduled_jobs:
-            if job[0] < 0:
+            if job.is_expired():
                 rem.append(job)
+            else:
+                job.run()
+        # garbage collection
         for job in rem:
             pr("removing completed job from schedule")
             self.scheduled_jobs.remove(job)
 
-    def schedule(self, num_steps, job):
+    def schedule(self, job):
         "Schedule a new job to be done after specified number of steps"
-        self.new_jobs.append([num_steps, job])
+        self.new_jobs.append(job)
 
     def die(self):
         self.is_live = False
@@ -314,12 +343,12 @@ class PolygonActor(Actor):
         steps = dist / vel
         self.angle = angle
         self.velocity = vel
-        self.schedule(steps, lambda: self.set_velocity(0))
+        self.schedule(Job(lambda: self.set_velocity(0), steps))
 
     # OVERRIDE
     def die(self):
         self.color = 'red'
-        self.schedule(20, lambda: self.set_is_live(False))
+        self.schedule(Job(lambda: self.set_is_live(False), 20))
 
 class Ship(PolygonActor):
     """A PolygonActor who can shoot missiles and lasers."""
