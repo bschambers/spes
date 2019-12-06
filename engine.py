@@ -113,7 +113,7 @@ class DroneController(Job):
 class Game(object):
     """The game engine."""
 
-    num_drones = 2
+    num_drones = 3
     actors = []
     actors_to_add = []
     player = None
@@ -145,8 +145,11 @@ class Game(object):
     def action(self, gui):
         # any actors to add
         while self.actors_to_add:
-            pr("adding actor")
-            self.actors.append(self.actors_to_add.pop())
+            # check for duplicate
+            a = self.actors_to_add.pop()
+            if not (a in self.actors):
+                pr("adding actor")
+                self.actors.append(a)
         # add more drones if required
         while len(self.actors) - 1 < self.num_drones:
             pr("adding drone")
@@ -177,8 +180,11 @@ class Game(object):
     def display(self, gui):
         for a in self.actors:
             a.update_gui_shape(gui)
-        gui.set_info_text('show boxes: {}\nscore: {}'.format(self.show_bounding_boxes,
-                                                             self.player.score))
+
+        extra_text = '' if self.player.is_live else '\n\nSHIP DESTROYED!'
+        gui.set_info_text('show boxes: {}\nscore: {}{}'.format(self.show_bounding_boxes,
+                                                               self.player.score,
+                                                               extra_text))
 
     def collision_detection(self, a, b):
         """Do collision detection for two Actors."""
@@ -267,12 +273,14 @@ class PolygonActor(Actor):
     angle = 0
     velocity = 0
     shape_archetype = None
+    color_archetype = None
     shape = []
     color = None
 
     def __init__(self, game, shape_coords, color):
         super().__init__(game)
         self.shape_archetype = shape_coords
+        self.color_archetype = color
         self.color = color
         self.edge_behaviour = bounce_on_edges
 
@@ -366,20 +374,28 @@ class Ship(PolygonActor):
         super().__init__(game, [10, -15, 0, 15, -10, -15], color)
 
     def missile(self, angle):
-        self.msg('missile: angle={}'.format(angle))
-        self.rotate(angle)
-        x_origin = self.shape[2]
-        y_origin = self.shape[3]
-        m = Bullet(self.game, x_origin, y_origin, angle, self)
-        self.game.add_actor(m)
+        if self.is_live:
+            self.msg('missile: angle={}'.format(angle))
+            self.rotate(angle)
+            x_origin = self.shape[2]
+            y_origin = self.shape[3]
+            m = Bullet(self.game, x_origin, y_origin, angle, self)
+            self.game.add_actor(m)
 
     def laser(self, angle):
-        self.msg('laser: angle={}'.format(angle))
-        self.rotate(angle)
-        x_origin = self.shape[2]
-        y_origin = self.shape[3]
-        beam = LaserBeam(self.game, x_origin, y_origin, angle, self)
-        self.game.add_actor(beam)
+        if self.is_live:
+            self.msg('laser: angle={}'.format(angle))
+            self.rotate(angle)
+            x_origin = self.shape[2]
+            y_origin = self.shape[3]
+            beam = LaserBeam(self.game, x_origin, y_origin, angle, self)
+            self.game.add_actor(beam)
+
+    def respawn(self):
+        """Bring ship back from the dead."""
+        self.is_live = True
+        self.color = self.color_archetype
+        self.game.add_actor(self)
 
 class LaserBeam(Actor):
     """A static line with limited lifespan which does damage to other actors."""
