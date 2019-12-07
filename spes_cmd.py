@@ -33,11 +33,13 @@
 #     >>> gui.start()
 
 from engine import Game
+import user
 
 import tkinter as tk
 import threading
 from time import time
 from random import randint
+import importlib
 
 class GameGUI(threading.Thread):
     """Makes a tkinter GUI on a thread of it's own.
@@ -120,9 +122,8 @@ game = Game()
 gui = GameGUI(game)
 p = game.player
 
-def restart_game():
-    global game
-    global p
-    game = Game()
-    gui.new_game(game)
-    p = game.player
+def update():
+    print('updating from user file...')
+    importlib.reload(user)
+
+print('game initialised... to start, type: gui.start()')

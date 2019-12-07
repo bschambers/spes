@@ -6,10 +6,16 @@ p.move(45, 30)
 p.laser(61)
 p.missile(50)
 
-for deg in range(0, 360, 15): p.missile(deg)
+user.spread_fire(p, 11, 45, 5)
 
-from user import spread_fire
-spread_fire(70, 30, 5)
+user.right(p)
+
+p.respawn()
+
+print(p.position)
+print(p.angle)
+
+for deg in range(0, 360, 15): p.missile(deg)
 
 gui.game_running = False
 

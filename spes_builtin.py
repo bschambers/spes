@@ -22,9 +22,11 @@
 #     $ python spes_builtin.py
 
 from engine import Game
+import user
 
 import tkinter as tk
 import tkinter.filedialog as filedialog
+import importlib
 
 class GameGUI(object):
     """Public interface:
@@ -151,9 +153,16 @@ class GameGUI(object):
         debug_text = 'num canvas items: {}\n'.format(len(self.canvas.find_all()))
         self.canvas.itemconfig(self.info, text=debug_text + text)
 
+###################### TOP LEVEL USER INTERFACE ######################
+
 game = Game()
 gui = GameGUI()
 gui.setup_game_engine(game)
 p = game.player
+
+def update():
+    print('updating from user file...')
+    importlib.reload(user)
+
 gui.root.after(500, gui.game_loop)
 gui.root.mainloop()
